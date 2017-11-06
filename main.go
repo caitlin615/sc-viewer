@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/caitlin615/sc_viewer/ws"
+	"github.com/caitlin615/sc-viewer/ws"
 )
 
 var T = template.Must(template.ParseGlob("templates/*.html"))
