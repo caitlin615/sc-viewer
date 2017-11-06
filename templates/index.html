@@ -53,11 +53,13 @@
     }
     var websockerURL = wsProto+"://"+window.location.host+"/ws";
     var socket;
+    var reconnectDelay = 0;
     start();
     function start() {
       socket = new WebSocket(websockerURL);
       socket.onopen = function() {
         console.log("Socket is open");
+        reconnectDelay = 0;
       };
       socket.onmessage = function(e) {
         // Only keep specified number of scribbles in the dom.
@@ -90,8 +92,11 @@
       }
       socket.onclose = function () {
         console.log("Socket closed");
-        // Try to reconnect in 5 seconds
-        setTimeout(start, 5000);
+        // Exponential backoff reconnect
+        setTimeout(function() {
+          reconnectDelay = Math.max(reconnectDelay *= 2, 1);
+          start();
+        }, reconnectDelay * 1000);
       }
     }
   });
