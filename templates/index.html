@@ -7,6 +7,8 @@
   <div id="debug" style="color: blue;"></div>
   <div id="container"></div>
   <script>
+  var MAX_VIDEOS_TO_KEEP = 20;
+
   window.addEventListener("load", function() {
     if (window.WebSocket === undefined) {
       document.body.innerHTML += "<p>Your browser does not support WebSockets</p>";
@@ -22,6 +24,11 @@
         console.log("Socket is open");
       };
       socket.onmessage = function(e) {
+        // Only keep specified number of scribbles in the dom.
+        while (container.children.length >= MAX_VIDEOS_TO_KEEP) {
+          container.removeChild(container.lastChild);
+        }
+
         var url = e.data;
         if (url.endsWith(".mp4")) {
           video = document.createElement("video");
