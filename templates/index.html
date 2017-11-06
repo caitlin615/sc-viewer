@@ -8,47 +8,48 @@
   <div id="container"></div>
   <script>
   window.addEventListener("load", function() {
-    var item = document.getElementById("msg");
-    function debug(msg) {
-      document.getElementById("debug").innerHTML +="<p>"+msg+"</p>";
-    }
-    debug("starting");
-
     if (window.WebSocket === undefined) {
-      debug("Your browser does not support WebSockets");
+      document.body.innerHTML += "<p>Your browser does not support WebSockets</p>";
       return;
     }
+
     var container = document.getElementById("container");
-    var socket = new WebSocket("ws://"+window.location.host+"/ws");
-    socket.onopen = function() {
-      debug("Socket is open");
-    };
-    socket.onmessage = function(e) {
-      var url = e.data;
-      if (url.endsWith(".mp4")) {
-        video = document.createElement("video");
-        video.setAttribute("src", url);
-        video.setAttribute("playsinline", true);
-        video.setAttribute("muted", true);
-        video.setAttribute("autoplay", true);
-        video.setAttribute("type", "video/mp4");
-        // On Android 4.4.2, we can't just set loop=true, so we manually restart
-        // it when it reaches the end:
-        video.addEventListener("ended", function() {
-          video.currentTime = 0;
-          video.play();
-        });
-        container.insertBefore(video, container.firstChild);
-      } else if (url.endsWith(".gif")) {
-        var img = document.createElement("img");
-        img.src = url;
-        container.insertBefore(img, container.firstChild);
-      } else {
-        console.warn("got unknown data from websocket:", e);
+    var socket;
+    start();
+    function start() {
+      socket = new WebSocket("ws://"+window.location.host+"/ws");
+      socket.onopen = function() {
+        console.log("Socket is open");
+      };
+      socket.onmessage = function(e) {
+        var url = e.data;
+        if (url.endsWith(".mp4")) {
+          video = document.createElement("video");
+          video.setAttribute("src", url);
+          video.setAttribute("playsinline", true);
+          video.setAttribute("muted", true);
+          video.setAttribute("autoplay", true);
+          video.setAttribute("type", "video/mp4");
+          // On Android 4.4.2, we can't just set loop=true, so we manually restart
+          // it when it reaches the end:
+          video.addEventListener("ended", function() {
+            video.currentTime = 0;
+            video.play();
+          });
+          container.insertBefore(video, container.firstChild);
+        } else if (url.endsWith(".gif")) {
+          var img = document.createElement("img");
+          img.src = url;
+          container.insertBefore(img, container.firstChild);
+        } else {
+          console.warn("got unknown data from websocket:", e);
+        }
       }
-    }
-    socket.onclose = function () {
-      debug("Socket closed");
+      socket.onclose = function () {
+        console.log("Socket closed");
+        // Try to reconnect in 5 seconds
+        setTimeout(start, 5000);
+      }
     }
   });
   </script>
