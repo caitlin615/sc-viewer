@@ -7,10 +7,24 @@
     background-color: #A89FFF;
     font-family: "Avenir Next", "Open Sans", "Liberation Sans", "Helvetica Neue", "Helvetica", sans-serif;
   }
+  @keyframes slideInLeft {
+    from {
+      transform: translate3d(-100%, 0, 0);
+      visibility: visible;
+    }
+
+    to {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
   #container video, #container img {
     border-radius: 10px;
     width: 31vw;
     padding: 5px;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+    animation-name: slideInLeft;
   }
   h1 {
     color: white;
