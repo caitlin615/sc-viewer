@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/caitlin615/sc-viewer/ws"
 )
@@ -33,12 +34,12 @@ func main() {
 	http.HandleFunc("/webhook", func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.Method, r.URL.Path)
 		_, secret, ok := r.BasicAuth()
-		if !ok || secret != "SECRET" {
+		if !ok || secret != os.Getenv("WEBHOOK_SECRET") {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Enter the admin secret as password"`)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		body, err := ioutil.ReadAll(r.Body) // TODO: limit length? probably not a necessary safeguard on an admin endpoint
+		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -58,7 +59,11 @@ func main() {
 		hub.Broadcast(&scribble)
 	})
 
-	address := "0.0.0.0:8100"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8100"
+	}
+	address := "0.0.0.0:" + port
 	log.Println("now listening on", address)
 	log.Fatal(http.ListenAndServe(address, nil))
 }
