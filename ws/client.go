@@ -101,4 +101,6 @@ func Serve(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.writePump()
+
+	log.Printf("Active clients: %d", len(hub.clients))
 }
