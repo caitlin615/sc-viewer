@@ -2,12 +2,29 @@
 <html lang="en">
 <head>
   <title>ScribbleChat</title>
+  <style>
+  body {
+    background-color: #A89FFF;
+    font-family: "Avenir Next", "Open Sans", "Liberation Sans", "Helvetica Neue", "Helvetica", sans-serif;
+  }
+  #container video, #container img {
+    border-radius: 10px;
+    width: 31vw;
+    padding: 5px;
+  }
+  h1 {
+    color: white;
+    text-align: center;
+    width: 100%;
+    font-weight: 300;
+  }
+  </style>
 </head>
 <body>
-  <div id="debug" style="color: blue;"></div>
+  <h1>ScribbleChat Recent Creations</h1>
   <div id="container"></div>
   <script>
-  var MAX_VIDEOS_TO_KEEP = 20;
+  var MAX_VIDEOS_TO_KEEP = 30;
 
   window.addEventListener("load", function() {
     if (window.WebSocket === undefined) {
@@ -31,7 +48,7 @@
 
         var url = e.data;
         if (url.endsWith(".mp4")) {
-          video = document.createElement("video");
+          var video = document.createElement("video");
           video.setAttribute("src", url);
           video.setAttribute("playsinline", true);
           video.setAttribute("muted", true);
