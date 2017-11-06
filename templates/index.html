@@ -33,10 +33,15 @@
     }
 
     var container = document.getElementById("container");
+    var wsProto = "ws";
+    if (window.location.protocol.startsWith("https")) {
+      wsProto = "wss";
+    }
+    var websockerURL = wsProto+"://"+window.location.host+"/ws";
     var socket;
     start();
     function start() {
-      socket = new WebSocket("ws://"+window.location.host+"/ws");
+      socket = new WebSocket(websockerURL);
       socket.onopen = function() {
         console.log("Socket is open");
       };
