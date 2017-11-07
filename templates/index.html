@@ -97,9 +97,13 @@
               scribble.removeEventListener("ended", ended)
               // then start playing only on mouseover
               scribble.addEventListener("mouseover", function() {
-                // TODO: continue looping while moused over
                 scribble.currentTime = 0;
                 scribble.play();
+                scribble.setAttribute("loop", true);
+              });
+              scribble.addEventListener("mouseout", function() {
+                // this will stop the video from playing upon completion
+                scribble.removeAttribute("loop");
               });
             }
           };
