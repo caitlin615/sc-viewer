@@ -22,6 +22,8 @@
     border-radius: 10px;
     width: 31vw;
     margin: 5px;
+  }
+  .slide {
     animation-duration: 0.5s;
     animation-fill-mode: both;
     animation-name: slideInLeft;
@@ -62,7 +64,7 @@
         reconnectDelay = 0;
       };
 
-      socket.onclose = function () {
+      socket.onclose = function() {
         console.log("Socket closed");
         // Exponential backoff reconnect
         setTimeout(function() {
@@ -95,6 +97,7 @@
               scribble.removeEventListener("ended", ended)
               // then start playing only on mouseover
               scribble.addEventListener("mouseover", function() {
+                // TODO: continue looping while moused over
                 scribble.currentTime = 0;
                 scribble.play();
               });
@@ -116,8 +119,22 @@
             scribble.parentNode.removeChild(scribble);
           }
         }
-
         container.insertBefore(scribble, container.firstChild);
+
+        // Animate the entrance of the new video
+        scribble.classList.add("slide");
+        setTimeout(function() {
+          scribble.classList.remove("slide");
+        }, 500);
+
+        // slide everything else
+        for (var i = 0; i < container.children.length; i++) {
+          var item = container.children[i];
+          item.classList.add("slide");
+          setTimeout(function() {
+            item.classList.remove("slide");
+          }, 500);
+        }
       };
     }
   });
