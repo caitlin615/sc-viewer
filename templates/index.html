@@ -110,6 +110,13 @@
           return;
         }
 
+        // removes the video from the dom on click
+        scribble.onclick = function() {
+          if (scribble.parentNode) {
+            scribble.parentNode.removeChild(scribble);
+          }
+        }
+
         container.insertBefore(scribble, container.firstChild);
       };
     }
