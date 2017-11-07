@@ -122,18 +122,19 @@
         container.insertBefore(scribble, container.firstChild);
 
         // Animate the entrance of the new video
+        var animationend = function(e) {
+          // TODO: prefixed animationend events
+          e.target.removeEventListener("animationend", animationend);
+          e.target.classList.remove("slide");
+        }
+        scribble.addEventListener("animationend", animationend)
         scribble.classList.add("slide");
-        setTimeout(function() {
-          scribble.classList.remove("slide");
-        }, 500);
 
         // slide everything else
         for (var i = 0; i < container.children.length; i++) {
           var item = container.children[i];
+          item.addEventListener("animationend", animationend)
           item.classList.add("slide");
-          setTimeout(function() {
-            item.classList.remove("slide");
-          }, 500);
         }
       };
     }
