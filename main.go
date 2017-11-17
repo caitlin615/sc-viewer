@@ -47,16 +47,17 @@ func main() {
 			return
 		}
 
-		var scribble ws.Scribble
-		if err := json.Unmarshal(body, &scribble); err != nil {
+		var scribbles []ws.Scribble
+		if err := json.Unmarshal(body, &scribbles); err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return
 		}
-		log.Printf("scribble: %#+v\n", scribble)
-
-		hub.Broadcast(&scribble)
+		log.Printf("scribbles: %#+v\n", scribbles)
+		for _, scribble := range scribbles {
+			hub.Broadcast(&scribble)
+		}
 	})
 
 	port := os.Getenv("PORT")

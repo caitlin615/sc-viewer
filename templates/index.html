@@ -22,6 +22,7 @@
     border-radius: 10px;
     width: 31vw;
     margin: 5px;
+    border: transparent 5px solid
   }
   .slide {
     animation-duration: 0.5s;
@@ -33,6 +34,15 @@
     text-align: center;
     width: 100%;
     font-weight: 300;
+  }
+  #container video, #container img .kik {
+    border-color: #5dcd11;
+  }
+  #container video, #container img .messenger {
+    border-color: #0084ff;
+  }
+  #container video, #container img .web {
+    border-color: #00C9CB;
   }
   </style>
 </head>
@@ -78,11 +88,15 @@
         while (container.children.length >= MAX_VIDEOS_TO_KEEP) {
           container.removeChild(container.lastChild);
         }
+        var data = JSON.parse(e.data);
+        console.log(data);
+        if (!data.urls) {
+          return
+        }
         var scribble;
-        var url = e.data;
-        if (url.endsWith(".mp4")) {
+        if (data.urls.mp4) {
           scribble = document.createElement("video");
-          scribble.setAttribute("src", url);
+          scribble.setAttribute("src", data.urls.mp4);
           scribble.setAttribute("playsinline", true);
           scribble.setAttribute("muted", true);
           scribble.setAttribute("autoplay", true);
@@ -108,15 +122,17 @@
             }
           };
           scribble.addEventListener("ended", ended);
-
-        } else if (url.endsWith(".gif")) {
+        } else if (data.urls.gif) {
           scribble = document.createElement("img");
-          scribble.src = url;
+          scribble.src = data.urls.gif;
         } else {
-          console.warn("got unknown data from websocket:", e);
+          console.error("got unknown data from websocket:", e);
           return;
         }
 
+        if (data.shareMode) {
+          scribble.classList.add(data.shareMode);
+        }
         // removes the video from the dom on click
         scribble.onclick = function() {
           if (scribble.parentNode) {

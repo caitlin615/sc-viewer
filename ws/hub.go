@@ -5,6 +5,8 @@
 package ws
 
 import (
+	"encoding/json"
+	"log"
 	"time"
 )
 
@@ -58,12 +60,20 @@ func (h *Hub) Run() {
 
 func (h *Hub) Broadcast(scribble *Scribble) {
 	// TODO: Maybe store this somewhere and send last couple to new clients
-	h.broadcast <- []byte(scribble.URL)
+	b, err := json.Marshal(scribble)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	h.broadcast <- b
 }
 
+// TODO: Use Scribble in handwritingio/scribblechat/api/sc/metadata.go
 type Scribble struct {
-	LastModified *time.Time `json:"last_modified"`
-	URL          string     `json:"url"`
+	ID        string            `json:"id"`
+	DateSent  time.Time         `json:"date_sent"`
+	ShareMode string            `json:"shareMode"`
+	URLs      map[string]string `json:"urls"`
 }
 
 // /webhook consumes from an AWS Lambda
@@ -86,33 +96,36 @@ type Scribble struct {
 // log = logging.getLogger()
 // log.setLevel(logging.INFO)
 //
-// s3 = boto3.client('s3')
-//
 // webhook_url = os.getenv("WEBHOOK_URL")
 // secret = os.getenv("WEBHOOK_SECRET")
 //
 // def lambda_handler(event, context):
-//     # print("Received event: " + json.dumps(event, indent=2))
+//     #print("Received event: " + json.dumps(event, indent=2))
+//     items = []
+//     for record in event['Records']:
+//         print(record['eventID'])
+//         if record['eventName'] != 'MODIFY':
+//             continue
+//         date_sent = record['dynamodb']['NewImage']['date_sent']['S']
+//         if date_sent == '0001-01-01T00:00:00Z':
+//             continue
+//         item = {'date_sent': date_sent}
+//         item["id"] = record['dynamodb']['NewImage']['id']['S']
+//         item["shareMode"] = record['dynamodb']['NewImage']['exporterShareMode']['S']
+//         urlRecord = record['dynamodb']['NewImage']['urls']['M']
+//         item["urls"] = {}
+//         for mimeType, value in urlRecord.iteritems():
+//             item["urls"][mimeType] = value['S']
 //
-//     # Get the object from the event and show its content type
-//     bucket = event['Records'][0]['s3']['bucket']['name']
-//     key = urllib.unquote_plus(event['Records'][0]['s3']['object']['key'].encode('utf8'))
+//         items.append(item)
 //     try:
-//         response = s3.get_object(Bucket=bucket, Key=key)
-//         url = "https://s3.amazonaws.com/%s/%s" % (bucket, key)
-//         last_modified = response['LastModified'].strftime('%Y-%m-%dT%H:%M:%SZ') # golang time format needed
-//         data = {
-//             "last_modified": last_modified,
-//             "url": url,
-//         }
-//
-//         req = Request(webhook_url, json.dumps(data))
+//         req = Request(webhook_url, json.dumps(items))
 //         base64string = base64.b64encode('%s:%s' % ("lambda", secret))
 //         req.add_header("Authorization", "Basic %s" % base64string)
 //         try:
 //             response = urlopen(req)
 //             response.read()
-//             log.info("Success:", data)
+//             # log.info("Success:", items)
 //         except HTTPError as e:
 //             log.error("Request failed: %d %s", e.code, e.reason)
 //             raise e
@@ -121,5 +134,4 @@ type Scribble struct {
 //             raise e
 //     except Exception as e:
 //         log.info(e)
-//         log.info('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
 //         raise e
