@@ -40,5 +40,6 @@ Requires go 1.7 and above
 
 # Examples
 
-See [examples/dynamodb.py]() for an example of how to send data from an AWS DynamoDB
-database (via an AWS Lambda function) to the `/websocket` endpoint.
+See [examples/dynamodb.py](examples/dynamodb.py) for an example of how to send
+data from an AWS DynamoDB database (via an AWS Lambda function) to the `/websocket`
+endpoint.
