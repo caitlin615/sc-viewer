@@ -13,6 +13,8 @@ import (
 
 var T = template.Must(template.ParseGlob("templates/*.html"))
 
+var idCache []string
+
 func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +59,9 @@ func main() {
 		log.Printf("scribbles: %#+v\n", scribbles)
 		for _, scribble := range scribbles {
 			scribble.Sent = !scribble.DateSent.IsZero()
+			if addToCache(scribble.ID) {
+				continue
+			}
 			hub.Broadcast(&scribble)
 		}
 	})
@@ -68,4 +73,14 @@ func main() {
 	address := "0.0.0.0:" + port
 	log.Println("now listening on", address)
 	log.Fatal(http.ListenAndServe(address, nil))
+}
+
+func addToCache(newId string) bool {
+	for _, id := range idCache {
+		if id == newId {
+			return true
+		}
+	}
+	idCache = append(idCache, newId)
+	return false
 }
