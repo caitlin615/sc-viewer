@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/caitlin615/sc-viewer/ws"
 )
@@ -63,6 +64,7 @@ func main() {
 				continue
 			}
 			hub.Broadcast(&scribble)
+			time.Sleep(1) // Sending too quickly results in multiple scribbles in a single websocket message
 		}
 	})
 
