@@ -52,7 +52,7 @@ func main() {
 
 		var scribbles []ws.Scribble
 		if err := json.Unmarshal(body, &scribbles); err != nil {
-			log.Println(err)
+			log.Println(err, string(body))
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return
