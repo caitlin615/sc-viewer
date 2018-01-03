@@ -37,3 +37,8 @@ Requires go 1.7 and above
 # Variables
 * `PORT`: webserver port (default: `8100`)
 * `WEBHOOK_SECRET`: Basic authentication for `/webhook` endpoint (ignores username)
+
+# Examples
+
+See [examples/dynamodb.py]() for an example of how to send data from an AWS DynamoDB
+database (via an AWS Lambda function) to the `/websocket` endpoint.
