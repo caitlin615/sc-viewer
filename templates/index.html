@@ -83,11 +83,11 @@
     if (window.location.protocol.startsWith("https")) {
       wsProto = "wss";
     }
-    var websockerURL = wsProto+"://"+window.location.host+"/ws";
+    var websocketURL = wsProto+"://"+window.location.host+"/ws";
     var socket;
     var reconnectDelay = 0;
     function start() {
-      socket = new WebSocket(websockerURL);
+      socket = new WebSocket(websocketURL);
       socket.onopen = function() {
         console.log("Socket is open");
         reconnectDelay = 0;
