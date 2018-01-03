@@ -74,6 +74,8 @@ type Scribble struct {
 	DateSent  time.Time         `json:"date_sent"`
 	ShareMode string            `json:"shareMode"`
 	URLs      map[string]string `json:"urls"`
+
+	Sent bool
 }
 
 // /webhook consumes from an AWS Lambda
@@ -106,10 +108,10 @@ type Scribble struct {
 //         print(record['eventID'])
 //         if record['eventName'] != 'MODIFY':
 //             continue
-//         date_sent = record['dynamodb']['NewImage']['date_sent']['S']
-//         if date_sent == '0001-01-01T00:00:00Z':
-//             continue
-//         item = {'date_sent': date_sent}
+//        item = {}
+//        date_sent = record['dynamodb']['NewImage'].get('date_sent')
+//        if date_sent:
+//            item["date_sent"] = date_sent
 //         item["id"] = record['dynamodb']['NewImage']['id']['S']
 //         item["shareMode"] = record['dynamodb']['NewImage']['exporterShareMode']['S']
 //         urlRecord = record['dynamodb']['NewImage']['urls']['M']

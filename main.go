@@ -56,6 +56,7 @@ func main() {
 		}
 		log.Printf("scribbles: %#+v\n", scribbles)
 		for _, scribble := range scribbles {
+			scribble.Sent = !scribble.DateSent.IsZero()
 			hub.Broadcast(&scribble)
 		}
 	})
