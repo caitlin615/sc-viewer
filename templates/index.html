@@ -53,11 +53,26 @@
 </head>
 <body>
   <h1>ScribbleChat Recent Creations</h1>
+  <select id="types">
+    <option value="all">All</option>
+    <option value="sent">Sent Only</option>
+  </select>
   <div id="container"></div>
   <script>
   var MAX_VIDEOS_TO_KEEP = 30;
 
   window.addEventListener("load", function() {
+    var onlyShowSent = false;
+    document.getElementById("types").onchange = function(e) {
+      var options = e.target.children;
+      for (var i = 0; i < options.length; i++) {
+        var option = options[i];
+        if (option.selected) {
+          onlyShowSent = option.value === "sent";
+        }
+      }
+    };
+
     if (window.WebSocket === undefined) {
       document.body.innerHTML += "<p>Your browser does not support WebSockets</p>";
       return;
@@ -88,15 +103,21 @@
       };
 
       socket.onmessage = function(e) {
-        // Only keep specified number of scribbles in the dom.
-        while (container.children.length >= MAX_VIDEOS_TO_KEEP) {
-          container.removeChild(container.lastChild);
-        }
         var data = JSON.parse(e.data);
         console.log(data);
         if (!data.urls) {
           return;
         }
+
+        if (onlyShowSent && !data.Sent) {
+          return;
+        }
+
+        // Only keep specified number of scribbles in the dom.
+        while (container.children.length >= MAX_VIDEOS_TO_KEEP) {
+          container.removeChild(container.lastChild);
+        }
+
         var scribble;
         if (data.urls.mp4) {
           scribble = document.createElement("video");
