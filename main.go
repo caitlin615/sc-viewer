@@ -57,9 +57,9 @@ func main() {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		log.Printf("scribbles: %#+v\n", scribbles)
 		for _, scribble := range scribbles {
 			scribble.Sent = !scribble.DateSent.IsZero()
+			log.Printf("scribble: %#+v\n", scribble)
 			if addToCache(scribble.ID) {
 				continue
 			}
@@ -77,12 +77,12 @@ func main() {
 	log.Fatal(http.ListenAndServe(address, nil))
 }
 
-func addToCache(newId string) bool {
+func addToCache(newID string) bool {
 	for _, id := range idCache {
-		if id == newId {
+		if id == newID {
 			return true
 		}
 	}
-	idCache = append(idCache, newId)
+	idCache = append(idCache, newID)
 	return false
 }
