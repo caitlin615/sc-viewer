@@ -7,11 +7,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/caitlin615/sc-viewer/ws"
 )
 
 var T = template.Must(template.ParseGlob("templates/*.html"))
+
+var idCache []string
 
 func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
@@ -47,16 +50,22 @@ func main() {
 			return
 		}
 
-		var scribble ws.Scribble
-		if err := json.Unmarshal(body, &scribble); err != nil {
+		var scribbles []ws.Scribble
+		if err := json.Unmarshal(body, &scribbles); err != nil {
 			log.Println(err, string(body))
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return
 		}
-		log.Printf("scribble: %#+v\n", scribble)
-
-		hub.Broadcast(&scribble)
+		for _, scribble := range scribbles {
+			scribble.Sent = !scribble.DateSent.IsZero()
+			log.Printf("scribble: %#+v\n", scribble)
+			if addToCache(scribble.ID) {
+				continue
+			}
+			hub.Broadcast(&scribble)
+			time.Sleep(1) // Sending too quickly results in multiple scribbles in a single websocket message
+		}
 	})
 
 	port := os.Getenv("PORT")
@@ -66,4 +75,14 @@ func main() {
 	address := "0.0.0.0:" + port
 	log.Println("now listening on", address)
 	log.Fatal(http.ListenAndServe(address, nil))
+}
+
+func addToCache(newID string) bool {
+	for _, id := range idCache {
+		if id == newID {
+			return true
+		}
+	}
+	idCache = append(idCache, newID)
+	return false
 }

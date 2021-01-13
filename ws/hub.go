@@ -5,6 +5,8 @@
 package ws
 
 import (
+	"encoding/json"
+	"log"
 	"time"
 )
 
@@ -58,68 +60,20 @@ func (h *Hub) Run() {
 
 func (h *Hub) Broadcast(scribble *Scribble) {
 	// TODO: Maybe store this somewhere and send last couple to new clients
-	h.broadcast <- []byte(scribble.URL)
+	b, err := json.Marshal(scribble)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	h.broadcast <- b
 }
 
+// TODO: Use Scribble in handwritingio/scribblechat/api/sc/metadata.go
 type Scribble struct {
-	LastModified *time.Time `json:"last_modified"`
-	URL          string     `json:"url"`
-}
+	ID        string            `json:"id"`
+	DateSent  time.Time         `json:"date_sent"`
+	ShareMode string            `json:"shareMode"`
+	URLs      map[string]string `json:"urls"`
 
-// /webhook consumes from an AWS Lambda
-// the Lambda function listens for mp4/gif object creations and send the data to the webhook
-// which then adds broadcasts it
-//
-// from __future__ import print_function
-//
-// import json
-// import urllib
-// import boto3
-// import os
-// import logging
-// from datetime import datetime
-// import base64
-//
-// from urllib2 import Request, urlopen, URLError, HTTPError
-//
-// logging.info("Start logger")
-// log = logging.getLogger()
-// log.setLevel(logging.INFO)
-//
-// s3 = boto3.client('s3')
-//
-// webhook_url = os.getenv("WEBHOOK_URL")
-// secret = os.getenv("WEBHOOK_SECRET")
-//
-// def lambda_handler(event, context):
-//     # print("Received event: " + json.dumps(event, indent=2))
-//
-//     # Get the object from the event and show its content type
-//     bucket = event['Records'][0]['s3']['bucket']['name']
-//     key = urllib.unquote_plus(event['Records'][0]['s3']['object']['key'].encode('utf8'))
-//     try:
-//         response = s3.get_object(Bucket=bucket, Key=key)
-//         url = "https://s3.amazonaws.com/%s/%s" % (bucket, key)
-//         last_modified = response['LastModified'].strftime('%Y-%m-%dT%H:%M:%SZ') # golang time format needed
-//         data = {
-//             "last_modified": last_modified,
-//             "url": url,
-//         }
-//
-//         req = Request(webhook_url, json.dumps(data))
-//         base64string = base64.b64encode('%s:%s' % ("lambda", secret))
-//         req.add_header("Authorization", "Basic %s" % base64string)
-//         try:
-//             response = urlopen(req)
-//             response.read()
-//             log.info("Success:", data)
-//         except HTTPError as e:
-//             log.error("Request failed: %d %s", e.code, e.reason)
-//             raise e
-//         except URLError as e:
-//             log.error("Server connection failed: %s", e.reason)
-//             raise e
-//     except Exception as e:
-//         log.info(e)
-//         log.info('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
-//         raise e
+	Sent bool
+}

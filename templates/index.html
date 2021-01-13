@@ -17,21 +17,6 @@
       transform: translate3d(0, 0, 0);
     }
   }
-
-  #container video, #container img {
-    border-radius: 10px;
-    width: 31vw;
-    margin: 5px;
-    border: transparent 5px solid;
-  }
-
-  #container video {
-    border-color: #5dcd11;
-  }
-  #container img {
-    border-color: #0084ff;
-  }
-
   .slide {
     animation-duration: 0.5s;
     animation-fill-mode: both;
@@ -43,15 +28,51 @@
     width: 100%;
     font-weight: 300;
   }
+
+  #container video, #container img {
+    border-radius: 7px;
+    width: calc(100% - 7px);
+    border: transparent 3px solid;
+  }
+  #container video.sent, #container img.sent {
+    border-color: #5dcd11;
+  }
+  #container .scribble {
+    margin: 7px;
+    width: calc(25% - 14px);
+    display: inline-block;
+  }
+  #container .scribble p {
+    margin-top: 0;
+    text-align: center;
+    color: white;
+    font-size: 0.8em;
+  }
+
   </style>
 </head>
 <body>
   <h1>ScribbleChat Recent Creations</h1>
+  <select id="types">
+    <option value="all">All</option>
+    <option value="sent">Sent Only</option>
+  </select>
   <div id="container"></div>
   <script>
   var MAX_VIDEOS_TO_KEEP = 30;
 
   window.addEventListener("load", function() {
+    var onlyShowSent = false;
+    document.getElementById("types").onchange = function(e) {
+      var options = e.target.children;
+      for (var i = 0; i < options.length; i++) {
+        var option = options[i];
+        if (option.selected) {
+          onlyShowSent = option.value === "sent";
+        }
+      }
+    };
+
     if (window.WebSocket === undefined) {
       document.body.innerHTML += "<p>Your browser does not support WebSockets</p>";
       return;
@@ -62,12 +83,11 @@
     if (window.location.protocol.startsWith("https")) {
       wsProto = "wss";
     }
-    var websockerURL = wsProto+"://"+window.location.host+"/ws";
+    var websocketURL = wsProto+"://"+window.location.host+"/ws";
     var socket;
     var reconnectDelay = 0;
-    start();
     function start() {
-      socket = new WebSocket(websockerURL);
+      socket = new WebSocket(websocketURL);
       socket.onopen = function() {
         console.log("Socket is open");
         reconnectDelay = 0;
@@ -83,15 +103,25 @@
       };
 
       socket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        console.log(data);
+        if (!data.urls) {
+          return;
+        }
+
+        if (onlyShowSent && !data.Sent) {
+          return;
+        }
+
         // Only keep specified number of scribbles in the dom.
         while (container.children.length >= MAX_VIDEOS_TO_KEEP) {
           container.removeChild(container.lastChild);
         }
+
         var scribble;
-        var url = e.data;
-        if (url.endsWith(".mp4")) {
+        if (data.urls.mp4) {
           scribble = document.createElement("video");
-          scribble.setAttribute("src", url);
+          scribble.setAttribute("src", data.urls.mp4);
           scribble.setAttribute("playsinline", true);
           scribble.setAttribute("muted", true);
           scribble.setAttribute("autoplay", true);
@@ -117,22 +147,34 @@
             }
           };
           scribble.addEventListener("ended", ended);
-
-        } else if (url.endsWith(".gif")) {
+        } else if (data.urls.gif) {
           scribble = document.createElement("img");
-          scribble.src = url;
+          scribble.src = data.urls.gif;
         } else {
-          console.warn("got unknown data from websocket:", e);
+          console.error("got unknown data from websocket:", e);
           return;
+        }
+
+        if (data.Sent === true) {
+          scribble.classList.add("sent");
         }
 
         // removes the video from the dom on click
         scribble.onclick = function() {
-          if (scribble.parentNode) {
-            scribble.parentNode.removeChild(scribble);
+          if (scribbleContainer.parentNode) {
+            scribbleContainer.parentNode.removeChild(scribbleContainer);
           }
         }
-        container.insertBefore(scribble, container.firstChild);
+
+        var scribbleContainer = document.createElement("div");
+        scribbleContainer.classList.add("scribble");
+        var info = document.createElement("p");
+        info.innerHTML = data.shareMode;
+
+        scribbleContainer.appendChild(scribble);
+        scribbleContainer.appendChild(info);
+
+        container.insertBefore(scribbleContainer, container.firstChild);
 
         // Animate the entrance of the new video
         var animationend = function(e) {
@@ -151,6 +193,7 @@
         }
       };
     }
+    start();
   });
   </script>
 </body>
